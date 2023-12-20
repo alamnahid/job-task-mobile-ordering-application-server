@@ -75,14 +75,19 @@ async function run() {
         const filter = req.query;
         const query = {
           modelname: { $regex: filter.modelname || '', $options: 'i' },
-          // price: filter.price ? { $eq: parseInt(filter.price) } : { $exists: true },
-          // type: { $regex: filter.type || '', $options: 'i' },
-          // processor: { $regex: filter.processor || '', $options: 'i' },
-          // storage: { $regex: filter.storage || '', $options: 'i' },
-          // brandname: { $regex: filter.brandname || '', $options: 'i' },
+          brandname: { $regex: filter.brandname || '', $options: 'i' },
+          type: { $regex: filter.type || '', $options: 'i' },
+          processor: { $regex: filter.processor || '', $options: 'i' },
+          storage: { $regex: filter.storage || '', $options: 'i' },
         };
 
-        const result = await mobilecollection.find(query).skip(page * size).limit(size).toArray();
+        const options = {
+          sort: {
+              price: filter.sort === 'asc' ? 1 : -1
+          }
+      };
+
+        const result = await mobilecollection.find(query, options).skip(page * size).limit(size).toArray();
 
         res.send(result)
       } catch (error) {
