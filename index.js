@@ -127,7 +127,7 @@ async function run() {
     })
 
     // order related api
-    app.post('/orders', verifyToken, async (req, res) => {
+    app.post('/orders', async (req, res) => {
       try {
         const orders = req.body;
 
