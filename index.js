@@ -9,7 +9,7 @@ const port = process.env.PORT || 5000;
 app.use(cors({
   origin: [
     'http://localhost:5173',
-],
+  ],
   credentials: true
 }));
 app.use(express.json());
@@ -28,7 +28,7 @@ const client = new MongoClient(uri, {
 async function run() {
   try {
     const mobilecollection = client.db("mobileshopdb").collection("mobiles")
-   
+
     // jwt related apis
 
     app.post('/jwt', async (req, res) => {
@@ -65,7 +65,39 @@ async function run() {
         res.status(500).json({ error: 'Internal Server Error' });
       }
     });
-    
+
+    app.get('/allmobile', async (req, res) => {
+      try {
+        console.log(req.headers);
+        const page = parseInt(req.query.page);
+        const size = parseInt(req.query.size);
+
+        const filter = req.query;
+        const query = {
+          modelname: { $regex: filter.modelname || '', $options: 'i' },
+          // price: filter.price ? { $eq: parseInt(filter.price) } : { $exists: true },
+          // type: { $regex: filter.type || '', $options: 'i' },
+          // processor: { $regex: filter.processor || '', $options: 'i' },
+          // storage: { $regex: filter.storage || '', $options: 'i' },
+          // brandname: { $regex: filter.brandname || '', $options: 'i' },
+        };
+
+        const result = await mobilecollection.find(query).skip(page * size).limit(size).toArray();
+
+        res.send(result)
+      } catch (error) {
+        console.error('Error in /allmobile:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+
+    // stats
+    app.get('/mobile-stats', async (req, res) => {
+      const mobile = await mobilecollection.estimatedDocumentCount();
+      res.send({ mobile })
+    })
+
+
 
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
