@@ -29,6 +29,7 @@ async function run() {
   try {
     const mobilecollection = client.db("mobileshopdb").collection("mobiles")
     const cartCollection = client.db("mobileshopdb").collection("carts")
+    const orderCollection = client.db("mobileshopdb").collection("orders")
 
     // jwt related apis
 
@@ -84,9 +85,9 @@ async function run() {
 
         const options = {
           sort: {
-              price: filter.sort === 'asc' ? 1 : -1
+            price: filter.sort === 'asc' ? 1 : -1
           }
-      };
+        };
 
         const result = await mobilecollection.find(query, options).skip(page * size).limit(size).toArray();
 
@@ -124,6 +125,27 @@ async function run() {
       const result = await cartCollection.deleteOne(query)
       res.send(result);
     })
+
+    // order related api
+    app.post('/orders', verifyToken, async (req, res) => {
+      try {
+        const orders = req.body;
+
+        const query = {
+          _id: {
+            $in: orders.cartIds.map(id => new ObjectId(id))
+          }
+        };
+
+        const deleteResult = await cartCollection.deleteMany(query);
+
+        const result = await orderCollection.insertOne(orders);
+        res.send({result, deleteResult});
+      } catch (error) {
+        console.error('Error in /orders:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
 
     // stats
     app.get('/mobile-stats', async (req, res) => {
