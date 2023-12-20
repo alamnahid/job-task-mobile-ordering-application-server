@@ -27,7 +27,7 @@ const client = new MongoClient(uri, {
 
 async function run() {
   try {
-
+    const mobilecollection = client.db("mobileshopdb").collection("mobiles")
    
     // jwt related apis
 
@@ -52,6 +52,20 @@ async function run() {
         next();
       })
     }
+
+
+    // mobile related apis
+    app.post('/addmobile', async (req, res) => {
+      try {
+        const newmobile = req.body;
+        const result = await mobilecollection.insertOne(newmobile);
+        res.send(result);
+      } catch (error) {
+        console.error('Error in /addmobile:', error);
+        res.status(500).json({ error: 'Internal Server Error' });
+      }
+    });
+    
 
 
     console.log("Pinged your deployment. You successfully connected to MongoDB!");
